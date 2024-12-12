@@ -1,8 +1,22 @@
 # **Game Manager Application**
 
-This is a full-stack **Game Management Application** that allows you to **add**, **edit**, and **view games**. It includes:
-- **Backend**: A Node.js/Express server to manage the games.
-- **Frontend**: A React.js application to interact with the API and display game details.
+![Hosted Image](https://i.postimg.cc/fyXdj5Wy/Screenshot-2024-12-12-193238.png)
+
+This is a comprehensive **Game Management Application** designed to streamline game administration and configuration. It aims to provide features such as:
+
+- **Game Configuration**: Manage and customize game settings seamlessly.  
+- **Segmentation**: Organize and categorize games for better management.  
+- **A/B Testing**: Test game configurations to optimize performance and user experience.  
+
+## **Current Implementation**
+The current version of the application includes:
+
+- **Backend**: Built with **Node.js** and **Express** for efficient API and data management.  
+- **Frontend**: Developed with **React.js** for an interactive and user-friendly interface.
+
+---
+
+> **Note**: This project is a **work in progress**, and additional features like segmentation, configuration management, and A/B testing are part of the intended roadmap.
 
 ---
 
