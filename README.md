@@ -43,9 +43,8 @@ Make sure you have the following installed:
 2. **Install Dependencies**:
    ```bash
    yarn install
-   cd client
-   yarn install
 3. **Start the Development Environment**:
+   ```bash
    yarn dev
 
 ## **Usage**
@@ -115,8 +114,6 @@ MYGAME/
 | **DELETE** | `/api/games/:id`     | Delete a game by ID            |
 
 ---
-
-Let me know if you need further adjustments or explanations! 🚀
 
 
 ## **Technologies Used**

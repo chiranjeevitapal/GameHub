@@ -29,18 +29,20 @@ const Games = () => {
     };
 
     const handleSubmit = async (data) => {
-        if(modalMode === 'add') {
-            addGame(data);
+        if (modalMode === "add") {
+            await addGame(data); // Wait for the add API to complete
         } else {
-            updateGame(data.gameId, data);
+            await updateGame(data.gameId, data); // Wait for the update API to complete
         }
-
-        const formDataObject = new FormData();
-        Object.keys(data).forEach((key) => formDataObject.append(key, data[key]));
-
-        await fetch(url, { method, body: formDataObject });
-        await fetchGames();
+    
+        // Fetch the updated list of games and update the state
+        const updatedGames = await fetchGames();
+        setGames(updatedGames); 
+    
+        // Close the modal
+        setModalOpen(false);
     };
+    
 
     return (
         <div className="container mx-auto p-6">

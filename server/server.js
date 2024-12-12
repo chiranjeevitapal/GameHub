@@ -6,10 +6,12 @@ const app = express();
 const PORT = 3100;
 // CORs
 app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    next();
-})
+  res.header("Access-Control-Allow-Origin", "*"); // Allow all origins
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS"); // Allow specific HTTP methods
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
 app.use(bodyParser.json());
 app.use(express.static("public"));
 // In-memory list of games
@@ -96,107 +98,105 @@ let games = [
     }
   ];
   
-
 // Serve images in the "public/images" folder
 app.use("/images", express.static("images"));
+
+// Helper function to generate a clean file name from game name
+const generateFileName = (gameName, originalName) => {
+    const cleanName = gameName
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "-")
+        .replace(/-+/g, "-")
+        .trim();
+    const ext = path.extname(originalName);
+    return `${cleanName}-${Date.now()}${ext}`;
+};
+
+// Configure multer for image uploads
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, "public/images");
+    },
+    filename: (req, file, cb) => {
+        const { name } = req.body;
+        const fileName = generateFileName(name || "game", file.originalname);
+        cb(null, fileName);
+    },
+});
+const upload = multer({ storage });
 
 // API: Get all games
 app.get("/api/games", (req, res) => {
     const baseUrl = `${req.protocol}://${req.get("host")}`;
     const updatedGames = games.map((game) => ({
-      ...game,
-      image: game.image.startsWith("http") ? game.image : `${baseUrl}${game.image}`,
+        ...game,
+        image: game.image.startsWith("http") ? game.image : `${baseUrl}${game.image}`,
     }));
     res.json(updatedGames);
-  });
-  
+});
 
-// Helper function to generate a clean file name from game name
-const generateFileName = (gameName, originalName) => {
-    const cleanName = gameName
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, "-") // Replace spaces and special characters with hyphens
-      .replace(/-+/g, "-") // Replace multiple hyphens with a single hyphen
-      .trim();
-    const ext = path.extname(originalName); // Extract the original file extension
-    return `${cleanName}-${Date.now()}${ext}`;
-};
-  
-  // Configure multer for image uploads
-  const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-      cb(null, "public/images"); // Save files to 'public/images' folder
-    },
-    filename: (req, file, cb) => {
-      const { name } = req.body; // Extract game name from the request body
-      const fileName = generateFileName(name || "game", file.originalname); // Default to 'game' if name is missing
-      cb(null, fileName);
-    },
-  });
-  
-  const upload = multer({ storage });
-  
-  // API: Add a new game with image upload
-  app.post("/api/games", upload.single("image"), (req, res) => {
+// API: Add a new game with image upload
+app.post("/api/games", upload.single("image"), (req, res) => {
     const { name, downloads, genre, description } = req.body;
-  
+
     if (!req.file) {
-      return res.status(400).json({ error: "Image is required" });
+        return res.status(400).json({ error: "Image is required" });
     }
-  
-    const imageUrl = `${req.protocol}://${req.get("host")}/images/${req.file.filename}`; // Generate full image URL
-  
+
+    const imageUrl = `${req.protocol}://${req.get("host")}/images/${req.file.filename}`;
+
     const newGame = {
-      gameId: games.length ? games[games.length - 1].gameId + 1 : 1,
-      name,
-      image: imageUrl,
-      downloads: 0,
-      genre,
-      description,
+        gameId: games.length ? games[games.length - 1].gameId + 1 : 1,
+        name,
+        image: imageUrl,
+        downloads: parseInt(downloads) || 0,
+        genre,
+        description,
     };
-  
+
     games.push(newGame);
     res.status(201).json(newGame);
-  });
+});
 
-// API: Edit a game
-app.put("/api/games/:id", (req, res) => {
-  const gameId = parseInt(req.params.id);
-  const { name, image, dau } = req.body;
-  const game = games.find((g) => g.gameId === gameId);
-  if (game) {
-    game.name = name || game.name;
-    game.image = image || game.image;
-    game.dau = dau || game.dau;
-    res.json(game);
-  } else {
-    res.status(404).json({ message: "Game not found" });
-  }
+// API: Edit a game with optional image upload
+app.put("/api/games/:id", upload.single("image"), (req, res) => {
+    const gameId = parseInt(req.params.id);
+    const { name, downloads, genre, description } = req.body;
+    const game = games.find((g) => g.gameId === gameId);
+
+    if (game) {
+        // Update fields
+        game.name = name || game.name;
+        game.downloads = downloads ? parseInt(downloads) : game.downloads;
+        game.genre = genre || game.genre;
+        game.description = description || game.description;
+
+        // Update image if new file is uploaded
+        if (req.file) {
+            const imageUrl = `${req.protocol}://${req.get("host")}/images/${req.file.filename}`;
+            game.image = imageUrl;
+        }
+
+        res.json(game);
+    } else {
+        res.status(404).json({ message: "Game not found" });
+    }
 });
 
 // API: Delete a game
 app.delete("/api/games/:id", (req, res) => {
-  const gameId = parseInt(req.params.id);
-  games = games.filter((g) => g.gameId !== gameId);
-  res.json({ message: "Game deleted successfully" });
-});
+    const gameId = parseInt(req.params.id);
+    const gameIndex = games.findIndex((g) => g.gameId === gameId);
 
-// Render HTML page to show games
-app.get("/", (req, res) => {
-  const gameList = games
-    .map(
-      (game) =>
-        `<div style="margin: 10px;">
-          <h3>${game.name}</h3>
-          <img src="${game.image}" alt="${game.name}" style="width: 200px; height: auto;">
-          <p>Daily Active Users: ${game.dau}</p>
-        </div>`
-    )
-    .join("");
-  res.send(`<html><body><h1>Game List</h1>${gameList}</body></html>`);
+    if (gameIndex !== -1) {
+        games.splice(gameIndex, 1);
+        res.json({ message: "Game deleted successfully" });
+    } else {
+        res.status(404).json({ message: "Game not found" });
+    }
 });
 
 // Start the server
 app.listen(PORT, () => {
-  console.log(`Server is running at http://localhost:${PORT}`);
+    console.log(`Server is running at http://localhost:${PORT}`);
 });
