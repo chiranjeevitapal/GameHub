@@ -29,6 +29,7 @@ The current version of the application includes:
 6. [Folder Structure](#folder-structure)
 7. [API Routes](#api-routes)
 8. [Technologies Used](#technologies-used)
+9. [Feature Roadmap](#feature-roadmap)
 
 ---
 
@@ -140,7 +141,7 @@ Here’s a **feature roadmap** for your Game Management Application, organized b
 
 ---
 
-## **Game Management Tool: Feature Roadmap** 🚀  
+## **Feature Roadmap** 🚀  
 
 ### **Phase 1: Basic Details (MVP)**
 - **Objective**: Allow admins to add, edit, delete, and view basic game details.  
