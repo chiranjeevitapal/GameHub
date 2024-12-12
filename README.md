@@ -51,8 +51,8 @@ Make sure you have the following installed:
 
 1. **Clone the Repository**:
    ```bash
-   git clone <repository-url>
-   cd mygame
+   git clone git@github.com:chiranjeevitapal/GameHub.git
+   cd GameHub
 
 2. **Install Dependencies**:
    ```bash
